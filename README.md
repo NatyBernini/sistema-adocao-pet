@@ -29,7 +29,7 @@ O sistema tem como objetivo facilitar o processo de adoção de animais, permiti
 - Instalação do Xampp
 - Start Apache e MySQL
 - Criação do Banco de Dados através do Script Login
-- Colocar a URL no navegar: [loc](http://localhost/login/index.php)
+- Colocar a URL no navegar: [localhost/login/index.php](http://localhost/login/index.php)
 
 # Usuário e Senha
 Não existe um pré-cadastro de usuário e senha, porém você pode realizar o seu cadastro através da Tela de Cadastro de Usuário e selecionar o tipo de usuário que você deseja (admin ou user)
