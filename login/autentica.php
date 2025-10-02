@@ -22,7 +22,7 @@ $stmt = $pdo->prepare("SELECT * FROM usuarios WHERE email = ?");
 $stmt->execute([$email]);
 $usuario = $stmt->fetch(PDO::FETCH_ASSOC);
 
-if ($usuario && password_verify($senha, $usuario['senha_hash'])) {
+if ($usuario && $senha === $usuario['senha_hash']) {
     session_regenerate_id(true);
     $_SESSION['usuario'] = $usuario['email'];
     $_SESSION['perfil'] = $usuario['perfil'];

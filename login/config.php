@@ -11,9 +11,9 @@ session_start();
 define('DB_HOST', 'localhost');
 define('DB_NAME', 'login');
 define('DB_USER', 'root');
-define('DB_PASS', '');
+define('DB_PASS', ''); // coloque a senha do MySQL se houver
 
-$conn = new mysqli($host, $usuario, $senha, $banco);
+$conn = new mysqli(DB_HOST, DB_USER, DB_PASS, DB_NAME);
 
 if ($conn->connect_error) {
     die("Erro ao conectar ao banco de dados: " . $conn->connect_error);
