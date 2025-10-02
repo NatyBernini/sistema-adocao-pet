@@ -1,0 +1,159 @@
+ * {
+    font-family: 'Poppins';
+     margin: 0;
+     padding: 0;
+     box-sizing: border-box;
+ }
+
+ a {
+     text-decoration: none;
+     color: inherit;
+ }
+
+ button,
+ input,
+ select,
+ textarea {
+     font: inherit;
+     border: none;
+     outline: none;
+     background: none;
+ }
+
+ body {
+     margin: 0;
+     height: 100vh;
+     display: flex;
+     align-items: center;
+     justify-content: center;
+     font-family: Arial, sans-serif;
+     background: #F2F2F2;
+     text-align: center;
+ }
+
+ .container {
+     display: flex;
+     flex-direction: column;
+     align-items: center;
+     width: 100%;
+ }
+
+ .container-form {
+     background: #fff;
+     padding: 40px 70px;
+     border-radius: 12px;
+     box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.15);
+     text-align: center;
+     width: 100%;
+     max-width: 500px;
+     min-width: 200px;
+ }
+
+ .title-page {
+     margin-bottom: 52px;
+     color: #333;
+     font-weight: 600;
+     font-size: 40px;
+ }
+
+ label {
+     display: block;
+     text-align: left;
+     margin: 10px 0 5px;
+     font-weight: normal;
+     color: #1E1E1E;
+ }
+
+ input {
+     width: 100%;
+     padding: 10px;
+     border-radius: 8px;
+     border: 1px solid #D9D9D9;
+     outline: none;
+     font-size: 14px;
+     background-color: #fff !important;
+     margin-bottom: 10px;
+ }
+
+ input:focus {
+     border-color: #E5A000;
+ }
+
+ /* Campo Preenchido  */
+ input:-webkit-autofill {
+     box-shadow: 0 0 0 1000px #fff inset !important;
+     background: #fff;
+     border-color: #ffb302;
+ }
+
+
+ button {
+     margin-top: 20px;
+     width: 100%;
+     padding: 12px;
+     border: none;
+     border-radius: 8px;
+     background: #ffb302;
+     color: white;
+     font-size: 16px;
+     cursor: pointer;
+ }
+
+ button:hover {
+     background: #e6a100;
+ }
+
+ .password-wrapper {
+     position: relative;
+     width: 100%;
+ }
+
+ .password-wrapper input {
+     width: 100%;
+     padding-right: 40px;
+ }
+
+ .toggle-password {
+     position: absolute;
+     top: 50%;
+     right: 12px;
+     transform: translateY(-70%);
+     cursor: pointer;
+     font-size: 18px;
+     user-select: none;
+ }
+
+.logo-top-left {
+    position: fixed;
+    top: 10px;
+    left: 10px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    z-index: 1000;
+}
+
+.logo-top-left img {
+    width: 32;
+    height: auto;
+}
+
+.logo-top-left .logo-text {
+    font-size: 20px;
+    font-weight: bold;
+    color: #333;
+}
+
+footer {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    width: 100%;
+    padding: 12px 0;
+    background: #F2F2F2;
+    text-align: center;
+    font-family: 'Poppins', sans-serif;
+    font-size: 14px;
+    color: #555;
+    z-index: 1000;
+}
