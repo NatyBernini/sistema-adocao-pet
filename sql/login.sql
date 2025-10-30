@@ -8,3 +8,13 @@ CREATE TABLE usuarios(
     senha_hash VARCHAR (255),
     perfil ENUM('admin', 'user')
 );
+
+CREATE TABLE animais (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    nome VARCHAR(100) NOT NULL,
+    especie VARCHAR(50) NOT NULL,
+    raca VARCHAR(100),
+    idade INT,
+    tutor_email VARCHAR(100),
+    criado_em TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
