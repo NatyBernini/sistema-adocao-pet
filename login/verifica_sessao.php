@@ -1,7 +1,7 @@
 <?php
 session_start();
 
-$tempo_expiracao = 20;
+$tempo_expiracao = 60*60;
 
 // Verifica se o usuário está logado
 if (!isset($_SESSION['usuario'])) {

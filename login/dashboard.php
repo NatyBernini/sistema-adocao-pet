@@ -2,7 +2,7 @@
     $perfil_requerido = 'admin';
     require_once 'verifica_sessao.php';
 
-    $tempo_expiracao = 20;
+    $tempo_expiracao = 60*60;
 
     // Calcula o tempo restante para expiração
     $ultima_atividade = $_SESSION['ultima_atividade'] ?? time();
@@ -30,9 +30,8 @@
         <div class="container-form">
             <p>Seu perfil: <?= htmlspecialchars($_SESSION['perfil']) ?></p>
             
-            <!-- Contador de sessão -->
-            <p>Tempo para expirar a sessão: <span id="contador-expiracao"><?= $tempo_restante ?></span> segundos</p>
-            
+            <a href="animais.php">🐕 Cadastrar e Gerenciar Animais</a>
+
             <form action="logout.php" method="post">
                 <button type="submit">Sair</button>
             </form>
