@@ -39,6 +39,9 @@ Não existe um pré-cadastro de usuário e senha, porém você pode realizar o s
 - Caso o usuário seja admin, será redirecionado para o dashboard
 - Caso o usuário seja user, será redirecionado para a tela de acesso negado
 
+# CRUD Animais
+- Cadastro, Edição e exclusão de animais apenas para o tipo de usuário ADMIN
+
 # Equipe
 - Natália Bernini ( Desenvolvedora Frontend e UI/UX )
 - Gabriel Tolentino ( Desenvovledor Backend )
