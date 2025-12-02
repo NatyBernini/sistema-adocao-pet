@@ -1,5 +1,7 @@
 <?php
-session_start();
+if (session_status() === PHP_SESSION_NONE) {
+    session_start();
+}
 
 $tempo_expiracao = 60*60;
 
@@ -17,16 +19,15 @@ if (isset($_SESSION['ultima_atividade'])) {
         // Expirou por inatividade
         session_unset();
         session_destroy();
-        session_start(); // iniciar sessão para definir mensagem
-        $_SESSION['erro_login'] = "Sessão expirada por inatividade.";
-        header('Location: index.php');
+        header('Location: index.php'); // redireciona sem reiniciar sessão aqui
         exit;
     }
 }
+
 // Atualiza o timestamp da última atividade
 $_SESSION['ultima_atividade'] = time();
 
-// Se desejar limitar a um perfil específico:
+// Limita a um perfil específico, se definido
 if (isset($perfil_requerido) && $_SESSION['perfil'] !== $perfil_requerido) {
     header('Location: sem_permissao.php');
     exit;

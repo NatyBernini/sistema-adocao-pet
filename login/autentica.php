@@ -29,10 +29,12 @@ if ($usuario && password_verify($senha, $usuario['senha_hash'])) {
     session_regenerate_id(true);
     $_SESSION['usuario'] = $usuario['email'];
     $_SESSION['perfil'] = $usuario['perfil'];
+    $_SESSION['id_adotante'] = $usuario['id']; // salva o ID do usuário na sessão
     $_SESSION['tentativas'] = 0;
     header('Location: dashboard.php');
     exit;
-} else {
+}
+ else {
     $_SESSION['tentativas']++;
     $_SESSION['erro_login'] = "Credenciais inválidas.";
     header('Location: index.php');
