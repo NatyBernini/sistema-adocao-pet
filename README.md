@@ -1,48 +1,110 @@
-# Pet-Adote 🐾
-## Descrição do Projeto
+# 🐾 Pet-Adote – Sistema de Apoio à Adoção de Animais
 
-O Pet-Adote é um sistema web desenvolvido para a disciplina de Programação para Internet.
-O sistema tem como objetivo facilitar o processo de adoção de animais, permitindo que ONGs gerenciem os animais cadastrados e que adotantes realizem solicitações de adoção de forma prática e segura.
+## 📌 Descrição do Projeto
 
-# Funcionalidades
-## Usuário ONG
-- Cadastro e login da ONG.
+O **Pet-Adote** é um sistema web desenvolvido para facilitar e organizar o processo de adoção de animais entre **ONGs** e **adotantes**.  
+A plataforma possibilita o cadastro de animais, envio de solicitações de adoção e gerenciamento completo por parte das ONGs.
+
+Seu objetivo é tornar a adoção responsável mais acessível, rápida e segura.
+
+---
+
+## 🚀 Funcionalidades
+
+### 🏢 Usuário ONG (Admin)
+- Cadastro e login do administrador.
 - Cadastro de animais disponíveis para adoção.
-- Aprovação ou rejeição de solicitações de adoção.
-- Visualização do histórico de adoções.
+- Edição e exclusão de animais.
+- Upload de foto do animal.
+- Visualização das solicitações de adoção.
+- Aprovação ou rejeição das solicitações.
+- Histórico de adoções concluídas.
 
-## Usuário Adotante
-- Cadastro e login de usuários.
-- Visualização de animais disponíveis para adoção.
-- Solicitação de adoção de animais.
-- Acompanhamento do status das solicitações.
+### 👤 Usuário Adotante
+- Cadastro completo com integração automática ViaCEP.
+- Login seguro.
+- Navegação pelos animais cadastrados.
+- Envio de solicitações de adoção.
+- Acompanhamento do status da solicitação.
 
-# Tecnologias Utilizadas
+---
 
-- PHP: Linguagem principal do back-end.
-- HTML5 / CSS3: Estrutura e estilização das páginas.
-- JavaScript: Funcionalidades interativas no front-end.
-- MySQL: Banco de dados para armazenamento de informações.
-- GitHub: Controle de versão do projeto.
+## 🛠 Tecnologias Utilizadas
 
-# Requisitos e Passo a Passo para rodar o projeto
-- Instalação do Xampp
-- Start Apache e MySQL
-- Criação do Banco de Dados através do Script Login
-- Colocar a URL no navegar: [localhost/login/index.php](http://localhost/login/index.php)
+- **PHP (PDO)**
+- **MySQL**
+- **HTML5 / CSS3**
+- **JavaScript (Fetch API / ViaCEP)**
+- **XAMPP (Apache + MySQL)**
+- **GitHub (versões e colaboração)**
 
-# Usuário e Senha
-Não existe um pré-cadastro de usuário e senha, porém você pode realizar o seu cadastro através da Tela de Cadastro de Usuário e selecionar o tipo de usuário que você deseja (admin ou user)
+---
 
-# Fluxo do Sistema
-- Realizar o Cadastro ou Login
-- Caso o usuário seja admin, será redirecionado para o dashboard
-- Caso o usuário seja user, será redirecionado para a tela de acesso negado
+## 📂 Como Rodar o Projeto
 
-# CRUD Animais
-- Cadastro, Edição e exclusão de animais apenas para o tipo de usuário ADMIN
+1. Instalar o **XAMPP**
+2. Ligar o **Apache** e **MySQL**
+3. Criar o banco de dados executando o arquivo `login.sql`
+4. Colocar o projeto na pasta:  
 
-# Equipe
-- Natália Bernini ( Desenvolvedora Frontend e UI/UX )
-- Gabriel Tolentino ( Desenvovledor Backend )
-- Matheus Lima ( Analista de Dados )
+5. Acessar no navegador:  
+👉 http://localhost/login/index.php
+
+---
+
+## 🔐 Usuários e Perfis
+
+⚠️ O sistema **não possui usuários pré-cadastrados**.
+
+Você pode criar um novo usuário pela própria tela de cadastro.
+
+Perfis disponíveis:
+
+- **admin** → Acesso total ao sistema  
+- **adotante** → Pode solicitar adoções
+
+---
+
+## 🔄 Fluxo do Sistema
+
+1. Fazer cadastro ou login  
+2. Redirecionamento automático:
+- Admin → Dashboard
+- Adotante → Lista de animais
+3. O Admin gerencia:
+- Animais
+- Solicitações
+- Aprovações / Rejeições
+4. O Adotante:
+- Visualiza os animais
+- Envia solicitações
+- Acompanha o status
+
+---
+
+## 🐶 CRUD de Animais (Admin)
+
+- Cadastro ✔  
+- Edição ✔  
+- Exclusão ✔  
+- Upload de foto ✔  
+- Histórico de adoções ✔  
+
+---
+
+## 👥 Equipe
+
+| Nome | Função |
+|------|--------|
+| **Natália Bernini** | Desenvolvedora Frontend / UI-UX |
+| **Gabriel Tolentino** | Desenvolvedor Backend |
+| **Matheus Lima** | Analista de Dados |
+
+---
+
+## 💙 Mensagem Final
+
+> “Cada linha de código deste projeto não criou apenas um sistema —  
+> mas ajudou a aproximar animais abandonados de famílias que podem transformar suas vidas.”
+
+---
