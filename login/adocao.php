@@ -2,14 +2,12 @@
 require_once 'conexao.php';
 require_once 'verifica_sessao.php';
 
-// Limitar ao perfil adotante
 if ($_SESSION['perfil'] !== 'adotante') {
     die("Acesso negado.");
 }
 
 $mensagem = "";
 
-// Solicitação de adoção
 if (isset($_GET['adotar'])) {
     $id_animal = (int) $_GET['adotar'];
     $id_adotante = $_SESSION['id_adotante'];
@@ -27,7 +25,6 @@ if (isset($_GET['adotar'])) {
     }
 }
 
-// Lista animais disponíveis (não adotados ainda)
 $stmt = $pdo->query("
     SELECT a.*, s.id AS solicitacao_id 
     FROM animais a
@@ -37,8 +34,8 @@ $stmt = $pdo->query("
 ");
 $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-// Lista solicitações do usuário
 $id_adotante = $_SESSION['id_adotante'];
+
 $stmt2 = $pdo->prepare("
     SELECT sa.*, a.nome AS nome_animal, a.especie, a.raca, a.idade
     FROM solicitacoes_adocao sa
@@ -56,6 +53,74 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
     <title>Adoções - Pet Adote</title>
     <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style/main.css">
+
+    <style>
+        .content h3 {
+            margin-bottom: 12px;
+            font-size: 20px;
+            color: #444;
+        }
+
+        .card-section {
+            background: #fff;
+            padding: 25px;
+            border-radius: 12px;
+            box-shadow: 0 3px 10px rgba(0,0,0,0.08);
+            margin-bottom: 35px;
+        }
+
+        .table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 15px;
+        }
+
+        .table th {
+            background: #f1f1f1;
+            padding: 10px;
+            text-align: left;
+            font-weight: 600;
+        }
+
+        .table td {
+            padding: 10px;
+            border-bottom: 1px solid #e4e4e4;
+        }
+
+        .table tr:hover {
+            background: #fafafa;
+        }
+
+        .btn-small {
+            padding: 6px 12px;
+            border-radius: 6px;
+            background: #ffbb00;
+            color: #333;
+            text-decoration: none;
+            font-weight: 600;
+            transition: 0.2s;
+        }
+
+        .btn-small:hover {
+            background: #e0a800;
+        }
+
+        .alert {
+            padding: 12px;
+            background: #fff3cd;
+            border-left: 4px solid #ffcc00;
+            border-radius: 5px;
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 13px;
+            color: #777;
+        }
+    </style>
 </head>
 <body>
 
@@ -68,7 +133,6 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
 
         <a href="dashboard.php">🏠 Dashboard</a>
         <a href="adocao.php" class="active">💛 Adoções</a>
-
         <a href="#" id="logoutLink">🚪 Logout</a>
 
         <form id="logoutForm" action="logout.php" method="post" style="display: none;">
@@ -86,8 +150,8 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
         <?php endif; ?>
 
         <!-- ANIMAIS DISPONÍVEIS -->
-        <div class="container-form">
-            <h3>Animais disponíveis</h3>
+        <div class="card-section">
+            <h3>Animais Disponíveis para Adoção</h3>
 
             <table class="table">
                 <tr>
@@ -97,6 +161,7 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                     <th>Idade</th>
                     <th>Ações</th>
                 </tr>
+
                 <?php foreach($animais as $a): ?>
                 <tr>
                     <td><?= htmlspecialchars($a['nome']) ?></td>
@@ -112,11 +177,12 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                     </td>
                 </tr>
                 <?php endforeach; ?>
+
             </table>
         </div>
 
         <!-- MINHAS SOLICITAÇÕES -->
-        <div class="container-form" style="margin-top: 40px;">
+        <div class="card-section">
             <h3>Minhas Solicitações</h3>
 
             <?php if(count($solicitacoes) === 0): ?>
@@ -139,7 +205,7 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($s['especie']) ?></td>
                     <td><?= htmlspecialchars($s['raca']) ?></td>
                     <td><?= $s['idade'] ?></td>
-                    <td><?= ucfirst($s['status']) ?></td>
+                    <td><strong><?= ucfirst($s['status']) ?></strong></td>
                     <td><?= date('d/m/Y H:i', strtotime($s['data_solicitacao'])) ?></td>
                 </tr>
                 <?php endforeach; ?>
@@ -150,7 +216,6 @@ $solicitacoes = $stmt2->fetchAll(PDO::FETCH_ASSOC);
         </div>
 
         <footer>&copy; <?= date('Y') ?> Maguila</footer>
-
     </div>
 
     <script>

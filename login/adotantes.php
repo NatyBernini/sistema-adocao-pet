@@ -30,8 +30,16 @@ if (isset($_GET['excluir'])) {
 }
 
 // READ
-$stmt = $pdo->query("SELECT * FROM adotantes ORDER BY id DESC");
+$busca = isset($_GET['busca']) ? trim($_GET['busca']) : '';
+
+if ($busca !== '') {
+    $stmt = $pdo->prepare("SELECT * FROM adotantes WHERE nome LIKE ? ORDER BY id DESC");
+    $stmt->execute(["%$busca%"]);
+} else {
+    $stmt = $pdo->query("SELECT * FROM adotantes ORDER BY id DESC");
+}
 $adotantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
+
 ?>
 
 <!DOCTYPE html>
@@ -239,6 +247,28 @@ $adotantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
         <?php if(count($adotantes) > 0): ?>
 
             <h3 style="margin-bottom: 15px;">Lista de Adotantes</h3>
+            <form method="get" style="margin-bottom: 20px; display:flex; gap:10px;">
+    <input 
+        type="text" 
+        name="busca" 
+        placeholder="Buscar por nome..." 
+        value="<?= isset($_GET['busca']) ? htmlspecialchars($_GET['busca']) : '' ?>"
+        style="flex:1; padding:10px; border-radius:6px; border:1px solid #ccc;"
+    >
+
+    <button 
+        type="submit" 
+        style="padding:10px 20px; background:#3498db; color:white; border:none; border-radius:6px; cursor:pointer;">
+        Buscar
+    </button>
+
+    <a 
+        href="adotantes.php"
+        style="padding:10px 20px; background:#95a5a6; color:white; border-radius:6px; text-decoration:none;">
+        Limpar
+    </a>
+</form>
+
 
             <table>
                 <tr>
@@ -260,9 +290,10 @@ $adotantes = $stmt->fetchAll(PDO::FETCH_ASSOC);
                     <td><?= htmlspecialchars($a['endereco']) ?></td>
                     <td><?= date('d/m/Y', strtotime($a['data_registro'])) ?></td>
                     <td>
-                        <a class="action" href="adotantes_editar.php?id=<?= $a['id'] ?>">Editar</a> |
-                        <a class="action" href="?excluir=<?= $a['id'] ?>" onclick="return confirm('Excluir este adotante?')">Excluir</a>
-                    </td>
+                    <a class="action" href="adotantes_ver.php?id=<?= $a['id'] ?>">Ver</a> |
+                    <a class="action" href="adotantes_editar.php?id=<?= $a['id'] ?>">Editar</a> |
+                    <a class="action" href="?excluir=<?= $a['id'] ?>" onclick="return confirm('Excluir este adotante?')">Excluir</a>
+                </td>
                 </tr>
                 <?php endforeach; ?>
             </table>

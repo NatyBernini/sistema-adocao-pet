@@ -1,5 +1,5 @@
 <?php
-require_once 'conexao.php'; // apenas a conexão, sem verificar sessão
+require_once 'conexao.php';
 
 $mensagem = '';
 
@@ -8,11 +8,19 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
     $senha = $_POST['senha'];
     $perfil = $_POST['perfil'];
 
-    // Campos extras se perfil = adotante
+    // Campos do adotante
     $nome = $_POST['nome'] ?? null;
     $telefone = $_POST['telefone'] ?? null;
-    $endereco = $_POST['endereco'] ?? null;
+    $cep = preg_replace('/\D/', '', $_POST['cep'] ?? '');
+    $rua = $_POST['rua'] ?? '';
+    $bairro = $_POST['bairro'] ?? '';
+    $cidade = $_POST['cidade'] ?? '';
+    $estado = $_POST['estado'] ?? '';
 
+    // Monta endereço completo
+    $endereco = "$rua, $bairro - $cidade / $estado (CEP: $cep)";
+
+    // ---------------- VALIDAÇÕES -----------------
     if (!filter_var($email, FILTER_VALIDATE_EMAIL)) {
         $mensagem = "E-mail inválido.";
     } elseif (strlen($senha) < 8) {
@@ -21,6 +29,8 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
         $mensagem = "Perfil inválido.";
     } elseif ($perfil === 'adotante' && empty(trim($nome))) {
         $mensagem = "O nome é obrigatório para adotantes.";
+    } elseif ($perfil === 'adotante' && strlen($cep) !== 8) {
+        $mensagem = "CEP inválido.";
     } else {
 
         // Verificar e-mail duplicado
@@ -37,10 +47,9 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 
             if ($stmt->execute([$email, $senha_hash, $perfil])) {
 
-                // ID recém criado
                 $usuario_id = $pdo->lastInsertId();
 
-                // Se for adotante, cria também na tabela adotantes
+                // Se for adotante → cria registro extra
                 if ($perfil === 'adotante') {
                     $stmt2 = $pdo->prepare("
                         INSERT INTO adotantes (id, nome, email, telefone, endereco)
@@ -55,7 +64,6 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
                     ]);
                 }
 
-                // Criar sessão e redirecionar
                 session_start();
                 $_SESSION['usuario'] = $email;
                 $_SESSION['perfil'] = $perfil;
@@ -74,3 +82,4 @@ if ($_SERVER['REQUEST_METHOD'] === 'POST') {
 }
 
 ?>
+

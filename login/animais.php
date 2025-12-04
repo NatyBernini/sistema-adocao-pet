@@ -1,46 +1,142 @@
 <?php
 require_once 'conexao.php';
-require_once 'verifica_sessao.php';
 
 // Limitar ao perfil admin
 $perfil_requerido = 'admin';
-require 'verifica_sessao.php';
+require_once 'verifica_sessao.php';
+
 
 $mensagem = "";
 
-// CREATE
+/* ===========================
+   CREATE - CADASTRAR (com foto, saude, descricao)
+   ============================ */
 if (isset($_POST['acao']) && $_POST['acao'] === 'cadastrar') {
     $nome = trim($_POST['nome']);
     $especie = trim($_POST['especie']);
     $raca = trim($_POST['raca']);
-    $idade = (int) $_POST['idade'];
+    $idade = isset($_POST['idade']) && $_POST['idade'] !== '' ? (int) $_POST['idade'] : null;
     $tutor_email = trim($_POST['tutor_email']);
     $castrado = isset($_POST['castrado']) ? 1 : 0;
     $vermifugado = isset($_POST['vermifugado']) ? 1 : 0;
     $vacinado = isset($_POST['vacinado']) ? 1 : 0;
     $historico = trim($_POST['historico']);
+    $saude = trim($_POST['saude'] ?? '');
+    $descricao = trim($_POST['descricao'] ?? '');
 
-    if ($nome && $especie) {
-        $stmt = $pdo->prepare("INSERT INTO animais 
-            (nome, especie, raca, idade, tutor_email, castrado, vermifugado, vacinado, historico) 
-            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)");
-        $stmt->execute([$nome, $especie, $raca, $idade, $tutor_email, $castrado, $vermifugado, $vacinado, $historico]);
-        $mensagem = "Animal cadastrado com sucesso!";
+    // Handle file upload
+    $foto_nome_final = null;
+    if (!empty($_FILES['foto']) && $_FILES['foto']['error'] !== UPLOAD_ERR_NO_FILE) {
+        $arquivo = $_FILES['foto'];
+        if ($arquivo['error'] === UPLOAD_ERR_OK) {
+            $ext = strtolower(pathinfo($arquivo['name'], PATHINFO_EXTENSION));
+            $permitidos = ['jpg','jpeg','png','webp'];
+            if (!in_array($ext, $permitidos)) {
+                $mensagem = "Formato de imagem inválido. Use: jpg, jpeg, png, webp.";
+            } else {
+                // cria pasta se não existir
+                $uploadDir = __DIR__ . '/uploads/animais/';
+                if (!is_dir($uploadDir)) mkdir($uploadDir, 0755, true);
+
+                // nome único
+                $foto_nome_final = time() . '_' . bin2hex(random_bytes(6)) . '.' . $ext;
+                $destino = $uploadDir . $foto_nome_final;
+
+                if (!move_uploaded_file($arquivo['tmp_name'], $destino)) {
+                    $mensagem = "Falha ao salvar a foto no servidor.";
+                }
+            }
+        } else {
+            $mensagem = "Erro no upload da foto.";
+        }
+    }
+
+    if (!$mensagem) {
+        if ($nome && $especie) {
+            $stmt = $pdo->prepare("
+                INSERT INTO animais 
+                (nome, especie, raca, idade, tutor_email, castrado, vermifugado, vacinado, historico, saude, descricao, foto)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+            ");
+            $stmt->execute([
+                $nome,
+                $especie,
+                $raca,
+                $idade,
+                $tutor_email,
+                $castrado,
+                $vermifugado,
+                $vacinado,
+                $historico,
+                $saude,
+                $descricao,
+                $foto_nome_final
+            ]);
+            $mensagem = "Animal cadastrado com sucesso!";
+        } else {
+            $mensagem = "Preencha pelo menos o nome e a espécie.";
+            // se houve upload e deu certo, mas formulário inválido, remover arquivo salvo
+            if ($foto_nome_final) {
+                @unlink(__DIR__ . '/uploads/animais/' . $foto_nome_final);
+            }
+        }
     } else {
-        $mensagem = "Preencha pelo menos o nome e a espécie.";
+        // caso tenha mensagem de erro de upload e tenha criado arquivo parcialmente, remova
+        if (!empty($foto_nome_final) && file_exists(__DIR__ . '/uploads/animais/' . $foto_nome_final)) {
+            @unlink(__DIR__ . '/uploads/animais/' . $foto_nome_final);
+        }
     }
 }
 
-// DELETE
+/* ===========================
+   DELETE (remover foto também)
+   ============================ */
 if (isset($_GET['excluir'])) {
     $id = (int) $_GET['excluir'];
+
+    // pegar nome da foto para apagar
+    $stmtSel = $pdo->prepare("SELECT foto FROM animais WHERE id = ?");
+    $stmtSel->execute([$id]);
+    $row = $stmtSel->fetch(PDO::FETCH_ASSOC);
+    if ($row && !empty($row['foto'])) {
+        $path = __DIR__ . '/uploads/animais/' . $row['foto'];
+        if (file_exists($path)) @unlink($path);
+    }
+
     $pdo->prepare("DELETE FROM animais WHERE id = ?")->execute([$id]);
     header("Location: animais.php");
     exit;
 }
 
-// READ
-$stmt = $pdo->query("SELECT * FROM animais ORDER BY id DESC");
+/* ===========================
+   BUSCA / FILTRO
+   ============================ */
+$busca = "";
+$params = [];
+
+if (!empty($_GET['nome'])) {
+    $busca .= " AND nome LIKE ? ";
+    $params[] = "%".$_GET['nome']."%";
+}
+
+if (!empty($_GET['especie'])) {
+    $busca .= " AND especie LIKE ? ";
+    $params[] = "%".$_GET['especie']."%";
+}
+
+if (!empty($_GET['raca'])) {
+    $busca .= " AND raca LIKE ? ";
+    $params[] = "%".$_GET['raca']."%";
+}
+
+if (isset($_GET['idade']) && $_GET['idade'] !== '') {
+    $busca .= " AND idade = ? ";
+    $params[] = (int) $_GET['idade'];
+}
+
+$sql = "SELECT * FROM animais WHERE 1 $busca ORDER BY id DESC";
+$stmt = $pdo->prepare($sql);
+$stmt->execute($params);
 $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
 ?>
 
@@ -50,6 +146,7 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
 <meta charset="utf-8">
 <title>Animais - Pet Adote</title>
 <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600&display=swap" rel="stylesheet">
+
 <style>
     body {
         margin: 0;
@@ -87,7 +184,7 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
         background: #34495e;
     }
 
-    /* CONTEÚDO */
+    /* CONTENT */
     .content {
         margin-left: 250px;
         padding: 40px;
@@ -118,37 +215,13 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
     }
 
     /* FORM */
-    form {
-        display: grid;
-        grid-template-columns: repeat(2,1fr);
-        gap: 15px;
-    }
     form input, form textarea {
         padding: 10px;
         border-radius: 6px;
         border: 1px solid #ccc;
         width: 100%;
     }
-    textarea {
-        grid-column: span 2;
-        resize: vertical;
-    }
-    form button {
-        grid-column: span 2;
-        padding: 12px;
-        background: #3498db;
-        color: white;
-        border: none;
-        border-radius: 8px;
-        font-weight: 600;
-        cursor: pointer;
-        transition: .3s;
-    }
-    form button:hover {
-        background: #2980b9;
-    }
 
-    /* TABELA */
     table {
         width: 100%;
         border-collapse: collapse;
@@ -165,6 +238,7 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
         padding: 12px;
         background: white;
         border-bottom: 1px solid #eee;
+        vertical-align: middle;
     }
     table tr:hover td {
         background: #f0f8ff;
@@ -178,70 +252,129 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
     a.action:hover {
         text-decoration: underline;
     }
-    /* BOTÃO */
-.btn-add {
-    padding: 12px 18px;
-    background: #27ae60;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
-    cursor: pointer;
-    transition: .3s;
-}
-.btn-add:hover {
-    background: #1f8c4d;
-}
 
-/* MODAL */
+    .btn-add {
+        padding: 12px 18px;
+        background: #27ae60;
+        color: white;
+        border: none;
+        border-radius: 8px;
+        font-weight: 600;
+        cursor: pointer;
+    }
+
+    /* modal básico (reaproveitado) */
+   /* ===== MODAL RESPONSIVO ===== */
 .modal {
     display: none;
     position: fixed;
-    z-index: 1000;
-    left: 0;
-    top: 0;
-    width: 100%;
-    height: 100%;
-    background: rgba(0,0,0,0.55);
+    z-index: 2000;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.55);
+    display: none;
     justify-content: center;
     align-items: center;
+    padding: 20px;
 }
 
+/* Conteúdo do modal */
 .modal-content {
-    background: white;
-    width: 500px;
-    padding: 30px;
-    border-radius: 10px;
-    animation: fadeIn .3s;
+    background: #ffffff;
+    width: 100%;
+    max-width: 500px;
+    max-height: 90vh;
+    overflow-y: auto;
+    padding: 25px;
+    border-radius: 12px;
+    box-shadow: 0 6px 20px rgba(0, 0, 0, 0.20);
+    position: relative;
+    animation: fadeInUp .3s ease;
 }
 
-.close {
-    float: right;
-    font-size: 28px;
+/* Animação */
+@keyframes fadeInUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* Botão fechar */
+.modal-content .close {
+    position: absolute;
+    right: 15px;
+    top: 10px;
+    font-size: 26px;
     cursor: pointer;
+    color: #444;
+    font-weight: bold;
 }
 
-.btn-submit {
-    grid-column: span 2;
-    padding: 12px;
-    background: #3498db;
-    color: white;
-    border: none;
-    border-radius: 8px;
-    font-weight: 600;
+.modal-content .close:hover {
+    color: #000;
 }
+
+/* Layout dos inputs */
+.modal-content label {
+    display: block;
+    margin-top: 12px;
+    margin-bottom: 4px;
+    font-weight: 600;
+    color: #333;
+}
+
+.modal-content input,
+.modal-content textarea,
+.modal-content select {
+    width: 100%;
+    padding: 10px;
+    font-size: 15px;
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    box-sizing: border-box;
+}
+
+/* Foto */
+.modal-content input[type="file"] {
+    padding: 7px;
+}
+
+/* Botão */
+.btn-submit {
+    margin-top: 15px;
+    padding: 12px;
+    width: 100%;
+    background: #3498db;
+    border: none;
+    color: #fff;
+    font-weight: bold;
+    border-radius: 8px;
+    cursor: pointer;
+    font-size: 15px;
+}
+
 .btn-submit:hover {
     background: #2980b9;
 }
 
-/* ANIMAÇÃO */
-@keyframes fadeIn {
-    from {opacity: 0; transform: translateY(-10px);}
-    to   {opacity: 1; transform: translateY(0);}
+/* Ajuste mobile */
+@media (max-width: 480px) {
+    .modal-content {
+        padding: 18px;
+        max-width: 95%;
+    }
 }
 
+  
+
+    .thumb {
+        width:60px;
+        height:60px;
+        object-fit:cover;
+        border-radius:6px;
+        border:1px solid #ddd;
+    }
 </style>
 </head>
+
 <body>
 
 <!-- SIDEBAR -->
@@ -266,19 +399,31 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
     <a href="logout.php">🚪 Logout</a>
 </div>
 
-<!-- CONTEÚDO -->
+<!-- CONTENT -->
 <div class="content">
 
     <p class="title-page">🐾 Gerenciar Animais</p>
 
- 
+    <div class="card">
 
-    <div class="card" style="margin-top: 30px;">
-        <h3 style="margin-bottom: 15px;">Lista de Animais</h3>
+        <h3>Lista de Animais</h3>
+
+        <!-- FORM DE BUSCA -->
+        <form method="GET" style="margin-bottom: 20px; display:flex; gap:10px; flex-wrap:wrap;">
+            <input type="text" name="nome" placeholder="Nome..." value="<?= htmlspecialchars($_GET['nome'] ?? '') ?>">
+            <input type="text" name="especie" placeholder="Espécie..." value="<?= htmlspecialchars($_GET['especie'] ?? '') ?>">
+            <input type="text" name="raca" placeholder="Raça..." value="<?= htmlspecialchars($_GET['raca'] ?? '') ?>">
+            <input type="number" name="idade" placeholder="Idade..." value="<?= htmlspecialchars($_GET['idade'] ?? '') ?>">
+
+            <button type="submit" style="padding:10px 15px; background:#3498db; border:none; border-radius:8px; color:white;">🔎 Buscar</button>
+
+            <a href="animais.php" style="padding:10px 15px; background:#7f8c8d; border-radius:8px; color:white; text-decoration:none;">❌ Limpar</a>
+        </form>
 
         <table>
             <tr>
                 <th>ID</th>
+                <th>Foto</th>
                 <th>Nome</th>
                 <th>Espécie</th>
                 <th>Raça</th>
@@ -292,6 +437,13 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
             <?php foreach ($animais as $a): ?>
             <tr>
                 <td><?= $a['id'] ?></td>
+                <td>
+                    <?php if (!empty($a['foto']) && file_exists(__DIR__.'/uploads/animais/'.$a['foto'])): ?>
+                        <img src="uploads/animais/<?= htmlspecialchars($a['foto']) ?>" class="thumb" alt="foto">
+                    <?php else: ?>
+                        <span style="color:#7f8c8d; font-size:13px;">sem foto</span>
+                    <?php endif; ?>
+                </td>
                 <td><?= htmlspecialchars($a['nome']) ?></td>
                 <td><?= htmlspecialchars($a['especie']) ?></td>
                 <td><?= htmlspecialchars($a['raca']) ?></td>
@@ -300,67 +452,91 @@ $animais = $stmt->fetchAll(PDO::FETCH_ASSOC);
                 <td><?= $a['vermifugado'] ? '✅' : '❌' ?></td>
                 <td><?= $a['vacinado'] ? '✅' : '❌' ?></td>
                 <td>
+                    <a class="action" href="animais_ver.php?id=<?= $a['id'] ?>">Ver</a> |
                     <a class="action" href="animais_editar.php?id=<?= $a['id'] ?>">Editar</a> |
                     <a class="action" href="?excluir=<?= $a['id'] ?>" onclick="return confirm('Excluir este animal?')">Excluir</a>
                 </td>
             </tr>
             <?php endforeach; ?>
         </table>
+
     </div>
-  <div class="card">
-    <?php if($mensagem): ?>
-        <div class="mensagem"><?= htmlspecialchars($mensagem) ?></div>
-    <?php endif; ?>
 
-    <button class="btn-add" onclick="abrirModal()">➕ Cadastrar Novo Animal</button>
+    <div class="card" style="margin-top:16px;">
+        <?php if($mensagem): ?>
+            <div class="mensagem"><?= htmlspecialchars($mensagem) ?></div>
+        <?php endif; ?>
+
+        <button class="btn-add" onclick="abrirModal()">➕ Cadastrar Novo Animal</button>
+    </div>
+
 </div>
 
-</div>
-
-<!-- MODAL DE CADASTRO -->
+<!-- MODAL -->
+<!-- MODAL -->
 <div id="modalCadastro" class="modal">
     <div class="modal-content">
+
         <span class="close" onclick="fecharModal()">&times;</span>
 
-        <h2>Cadastrar Novo Animal</h2>
+        <h2 style="margin-top: 0;">Cadastrar Novo Animal</h2>
 
-        <form method="post">
+        <form method="post" enctype="multipart/form-data">
             <input type="hidden" name="acao" value="cadastrar">
 
-            <div><label>Nome:</label><input type="text" name="nome" required></div>
-            <div><label>Espécie:</label><input type="text" name="especie" required></div>
-            <div><label>Raça:</label><input type="text" name="raca"></div>
-            <div><label>Idade:</label><input type="number" name="idade"></div>
-            <div><label>Email do Tutor:</label><input type="email" name="tutor_email"></div>
+            <label>Foto do Animal:</label>
+            <input type="file" name="foto" accept="image/*">
 
-            <div><label><input type="checkbox" name="castrado"> Castrado</label></div>
-            <div><label><input type="checkbox" name="vermifugado"> Vermifugado</label></div>
-            <div><label><input type="checkbox" name="vacinado"> Vacinado</label></div>
+            <label>Nome:</label>
+            <input type="text" name="nome" required>
 
-            <div>
-                <label>Histórico:</label>
-                <textarea name="historico" rows="3"></textarea>
-            </div>
+            <label>Espécie:</label>
+            <input type="text" name="especie" required>
 
-            <button type="submit" class="btn-submit">Salvar</button>
+            <label>Raça:</label>
+            <input type="text" name="raca">
+
+            <label>Idade:</label>
+            <input type="number" name="idade">
+
+            <label>Email do Tutor:</label>
+            <input type="email" name="tutor_email">
+
+            <label>Situação de Saúde:</label>
+            <input type="text" name="saude">
+
+            <label>Descrição:</label>
+            <textarea name="descricao" rows="4"></textarea>
+
+            <label>Histórico:</label>
+            <textarea name="historico" rows="4"></textarea>
+
+            <label>
+                <input type="checkbox" name="castrado"> Castrado
+            </label>
+            <label>
+                <input type="checkbox" name="vermifugado"> Vermifugado
+            </label>
+            <label>
+                <input type="checkbox" name="vacinado"> Vacinado
+            </label>
+
+            <button class="btn-submit" type="submit">Cadastrar</button>
         </form>
     </div>
 </div>
+
 
 <script>
 function abrirModal() {
     document.getElementById("modalCadastro").style.display = "flex";
 }
-
 function fecharModal() {
     document.getElementById("modalCadastro").style.display = "none";
 }
-
-window.onclick = function(event) {
+window.onclick = function(e) {
     const modal = document.getElementById("modalCadastro");
-    if (event.target === modal) {
-        modal.style.display = "none";
-    }
+    if (e.target === modal) fecharModal();
 }
 </script>
 

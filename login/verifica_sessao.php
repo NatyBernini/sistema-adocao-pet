@@ -15,13 +15,13 @@ if (!isset($_SESSION['usuario'])) {
 // Verifica tempo de inatividade
 if (isset($_SESSION['ultima_atividade'])) {
     $tempo_inativo = time() - $_SESSION['ultima_atividade'];
-    if ($tempo_inativo > $tempo_expiracao) {
-        // Expirou por inatividade
-        session_unset();
-        session_destroy();
-        header('Location: index.php'); // redireciona sem reiniciar sessão aqui
-        exit;
-    }
+    // if ($tempo_inativo > $tempo_expiracao) {
+    //     // Expirou por inatividade
+    //     session_unset();
+    //     session_destroy();
+    //     header('Location: index.php'); // redireciona sem reiniciar sessão aqui
+    //     exit;
+    // }
 }
 
 // Atualiza o timestamp da última atividade
